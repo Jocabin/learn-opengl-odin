@@ -1,0 +1,17 @@
+{
+  "configurations": [
+    {
+      "name": "run debug session",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/logl",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "preLaunchTask": "build"
+    }
+  ]
+}
