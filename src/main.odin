@@ -1,6 +1,7 @@
 package main
 
 import "core:fmt"
+import "core:math"
 import "core:mem"
 import gl "vendor:OpenGL"
 import fw "vendor:glfw"
@@ -23,15 +24,17 @@ out vec4 FragColor;
 
 void main()
 {
-FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+FragColor = vec4(1.0f, 0.984f, 0.0f, 1.0f);
 }`
 
 fragment_shader_source2: cstring = `#version 330 core
 out vec4 FragColor;
 
+uniform vec4 ourColor;
+
 void main()
 {
-FragColor = vec4(1.0f, 0.984f, 0.0f, 1.0f);
+FragColor = ourColor;
 }`
 
 wireframe_mode := false
@@ -210,6 +213,12 @@ main :: proc() {
 		gl.DrawArrays(gl.TRIANGLES, 0, 3)
 
 		gl.UseProgram(shader_program2)
+
+		time := fw.GetTime()
+		green: f32 = f32(math.sin(time)) / 2 + 0.5
+		vertex_color_location := gl.GetUniformLocation(shader_program2, "ourColor")
+		gl.Uniform4f(vertex_color_location, 0, green, 0, 1.0)
+
 		gl.BindVertexArray(vao2)
 		gl.DrawArrays(gl.TRIANGLES, 0, 3)
 		// gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, nil)
