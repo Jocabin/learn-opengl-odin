@@ -14,17 +14,31 @@ WIN_H: i32 : 540
 
 vertex_shader_source: cstring = `#version 330 core
 layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+  
+out vec3 ourColor;
 
 void main()
 {
-gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+    gl_Position = vec4(aPos, 1.0);
+    ourColor = aColor;
+}  `
+
+vertex_shader_source2: cstring = `#version 330 core
+layout (location = 0) in vec3 aPos;
+
+void main()
+{
+gl_Position = vec4(aPos, 1.0);
 }`
+
 fragment_shader_source: cstring = `#version 330 core
 out vec4 FragColor;
+in vec3 ourColor;
 
 void main()
 {
-FragColor = vec4(1.0f, 0.984f, 0.0f, 1.0f);
+FragColor = vec4(ourColor, 1.0f);
 }`
 
 fragment_shader_source2: cstring = `#version 330 core
@@ -125,6 +139,12 @@ main :: proc() {
 	gl.AttachShader(shader_program, fragment_shader)
 	gl.LinkProgram(shader_program)
 
+	vertex_shader2: u32 = gl.CreateShader(gl.VERTEX_SHADER)
+	defer gl.DeleteShader(vertex_shader2)
+
+	gl.ShaderSource(vertex_shader2, 1, &vertex_shader_source2, nil)
+	gl.CompileShader(vertex_shader2)
+
 	fragment_shader2: u32 = gl.CreateShader(gl.FRAGMENT_SHADER)
 	defer gl.DeleteShader(fragment_shader2)
 
@@ -141,12 +161,12 @@ main :: proc() {
 	shader_program2: u32 = gl.CreateProgram()
 	defer gl.DeleteProgram(shader_program2)
 
-	gl.AttachShader(shader_program2, vertex_shader)
+	gl.AttachShader(shader_program2, vertex_shader2)
 	gl.AttachShader(shader_program2, fragment_shader2)
 	gl.LinkProgram(shader_program2)
 
-	// vertices: []f32 = {0.5, 0.5, 0.0, 0.5, -0.5, 0.0, -0.5, -0.5, 0.0, -0.5, 0.5, 0.0}
-	vertices: []f32 = {-0.5, 0.5, 0, 0, -0.5, 0, -1, -0.5, 0}
+	// vertices: []f32 = {0.5, 0.5, 0.0, 0.5, -0.5, 0.0, -0.5, -0.5, 0.0, -0.5, 0.5, 0.0} // vertices for a rectangle
+	vertices: []f32 = {-0.5, 0.5, 0, 1, 0, 0, 0, -0.5, 0, 0, 1, 0, -1, -0.5, 0, 0, 0, 1} // with colors attributes
 	vertices2: []f32 = {0.5, 0.5, 0, 1, -0.5, 0, 0, -0.5, 0}
 	indices: []u32 = {0, 1, 2}
 	vbo, vao, vbo2, vao2, ebo: u32
@@ -165,8 +185,10 @@ main :: proc() {
 		raw_data(vertices),
 		gl.STATIC_DRAW,
 	)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 3 * size_of(f32), 0)
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 6 * size_of(f32), 0)
 	gl.EnableVertexAttribArray(0)
+	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, 6 * size_of(f32), 3 * size_of(f32))
+	gl.EnableVertexAttribArray(1)
 
 	gl.GenVertexArrays(1, &vao2)
 	defer gl.DeleteVertexArrays(1, &vao2)
