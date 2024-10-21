@@ -3,6 +3,7 @@ package main
 import "core:fmt"
 import "core:math"
 import "core:mem"
+import "core:os"
 import gl "vendor:OpenGL"
 import fw "vendor:glfw"
 
@@ -64,11 +65,12 @@ main :: proc() {
 	fw.SetFramebufferSizeCallback(window, framebuffer_size_callback)
 	fw.SetKeyCallback(window, key_callback)
 
-	shader_program, shader_loaded := gl.load_shaders("shaders/vertex.vs", "shaders/fragment.fs")
+	shader_program, shader_loaded := gl.load_shaders("/shaders/vertex.vs", "/shaders/fragment.fs")
 	defer gl.DeleteProgram(shader_program)
 
 	if shader_loaded == false {
 		fmt.eprintln("Error: failed to load shader program")
+		os.exit(-1)
 	}
 
 	vao, vbo: u32
