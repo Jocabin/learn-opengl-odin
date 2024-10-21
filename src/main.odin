@@ -65,7 +65,10 @@ main :: proc() {
 	fw.SetFramebufferSizeCallback(window, framebuffer_size_callback)
 	fw.SetKeyCallback(window, key_callback)
 
-	shader_program, shader_loaded := gl.load_shaders("/shaders/vertex.vs", "/shaders/fragment.fs")
+	shader_program, shader_loaded := gl.load_shaders(
+		"src/shaders/vertex.vs",
+		"src/shaders/fragment.fs",
+	)
 	defer gl.DeleteProgram(shader_program)
 
 	if shader_loaded == false {
@@ -110,6 +113,7 @@ main :: proc() {
 		}
 
 		gl.UseProgram(shader_program)
+		gl.Uniform1f(gl.GetUniformLocation(shader_program, "offsetX"), 0)
 		gl.BindVertexArray(vao)
 		gl.DrawArrays(gl.TRIANGLES, 0, 3)
 
