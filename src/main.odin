@@ -71,9 +71,9 @@ main :: proc() {
 		fmt.eprintln("Error: failed to load shader program")
 	}
 
-	vertices := []f32{-.5, -.5, 0, 1, 0, 0, .5, -.5, 0, 0, 1, 0, 0, .5, 0, 0, 0, 1}
-
 	vao, vbo: u32
+	vertices: []f32 = {-.5, -.5, 0, 1, 0, 0, .5, -.5, 0, 0, 1, 0, 0, .5, 0, 0, 0, 1}
+
 	gl.GenVertexArrays(1, &vao)
 	defer gl.DeleteVertexArrays(1, &vao)
 
@@ -82,7 +82,12 @@ main :: proc() {
 
 	gl.BindVertexArray(vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, size_of(vertices), raw_data(vertices), gl.STATIC_DRAW)
+	gl.BufferData(
+		gl.ARRAY_BUFFER,
+		len(mem.slice_to_bytes(vertices)),
+		raw_data(vertices),
+		gl.STATIC_DRAW,
+	)
 
 	// position attribute
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 6 * size_of(f32), 0)
