@@ -78,14 +78,14 @@ main :: proc() {
 	}
 
 	vao, vbo, ebo: u32
-        //odinfmt:disable
+        // odinfmt:disable
 	vertices: []f32 = {
 		 0.5,  0.5, 0.0,    1.0, 0.0, 0.0,    1.0, 1.0,
 		 0.5, -0.5, 0.0,    0.0, 1.0, 0.0,    1.0, 0.0,
 		-0.5, -0.5, 0.0,    0.0, 0.0, 1.0,    0.0, 0.0,
 		-0.5,  0.5, 0.0,    1.0, 1.0, 0.0,    0.0, 1.0,
 	}
-        //odinfmt:enable
+        // odinfmt:enable
 	indices: []u32 = {0, 1, 3, 1, 2, 3}
 
 	gl.GenVertexArrays(1, &vao)
