@@ -6,6 +6,7 @@ import "core:mem"
 import "core:os"
 import gl "vendor:OpenGL"
 import fw "vendor:glfw"
+import stbi "vendor:stb/image"
 
 GL_MINOR_VERSION :: 3
 GL_MAJOR_VERSION :: 3
@@ -76,8 +77,42 @@ main :: proc() {
 		os.exit(-1)
 	}
 
-	vao, vbo: u32
-	vertices: []f32 = {-.5, -.5, 0, 1, 0, 0, .5, -.5, 0, 0, 1, 0, 0, .5, 0, 0, 0, 1}
+	vao, vbo, ebo: u32
+	vertices: []f32 = {
+		0.5,
+		0.5,
+		0.0,
+		1.0,
+		0.0,
+		0.0,
+		1.0,
+		1.0,
+		0.5,
+		-0.5,
+		0.0,
+		0.0,
+		1.0,
+		0.0,
+		1.0,
+		0.0,
+		-0.5,
+		-0.5,
+		0.0,
+		0.0,
+		0.0,
+		1.0,
+		0.0,
+		0.0,
+		-0.5,
+		0.5,
+		0.0,
+		1.0,
+		1.0,
+		0.0,
+		0.0,
+		1.0,
+	}
+	indices: []u32 = {0, 1, 3, 1, 2, 3}
 
 	gl.GenVertexArrays(1, &vao)
 	defer gl.DeleteVertexArrays(1, &vao)
@@ -85,7 +120,11 @@ main :: proc() {
 	gl.GenBuffers(1, &vbo)
 	defer gl.DeleteBuffers(1, &vbo)
 
+	gl.GenBuffers(1, &ebo)
+	defer gl.DeleteBuffers(1, &ebo)
+
 	gl.BindVertexArray(vao)
+
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(
 		gl.ARRAY_BUFFER,
@@ -94,16 +133,49 @@ main :: proc() {
 		gl.STATIC_DRAW,
 	)
 
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo)
+	gl.BufferData(
+		gl.ELEMENT_ARRAY_BUFFER,
+		len(mem.slice_to_bytes(indices)),
+		raw_data(indices),
+		gl.STATIC_DRAW,
+	)
+
 	// position attribute
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 6 * size_of(f32), 0)
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 8 * size_of(f32), 0)
 	gl.EnableVertexAttribArray(0)
 
 	// color attribute
-	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, 6 * size_of(f32), 3 * size_of(f32))
+	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, 8 * size_of(f32), 3 * size_of(f32))
 	gl.EnableVertexAttribArray(1)
 
+	// texture attribute
+	gl.VertexAttribPointer(2, 3, gl.FLOAT, false, 8 * size_of(f32), 6 * size_of(f32))
+	gl.EnableVertexAttribArray(2)
+
+	texture: u32
+	gl.GenTextures(1, &texture)
+	gl.BindTexture(gl.TEXTURE_2D, texture)
+
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+
+	tex_w, tex_h, tex_chan: i32
+	tex_data := stbi.load("assets/container.jpg", &tex_w, &tex_h, &tex_chan, 0)
+
+	if tex_data == nil {
+		fmt.eprintln("Error: Failed to load texture data")
+		os.exit(-1)
+	}
+
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGB, tex_w, tex_h, 0, gl.RGB, gl.UNSIGNED_BYTE, tex_data)
+	gl.GenerateMipmap(gl.TEXTURE_2D)
+	stbi.image_free(tex_data)
+
 	for !fw.WindowShouldClose(window) {
-		gl.ClearColor(0.2, 0.3, 0.3, 1)
+		gl.ClearColor(0, 1, 1, 1)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 
 		if wireframe_mode {
@@ -112,10 +184,10 @@ main :: proc() {
 			gl.PolygonMode(gl.FRONT_AND_BACK, gl.FILL)
 		}
 
+		gl.BindTexture(gl.TEXTURE_2D, texture)
 		gl.UseProgram(shader_program)
-		gl.Uniform1f(gl.GetUniformLocation(shader_program, "offsetX"), 0)
 		gl.BindVertexArray(vao)
-		gl.DrawArrays(gl.TRIANGLES, 0, 3)
+		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, nil)
 
 		fw.SwapBuffers(window)
 		fw.PollEvents()
